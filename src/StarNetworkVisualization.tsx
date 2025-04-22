@@ -6,7 +6,12 @@ import { populationData } from './data/populationData';
 const StarNetworkVisualization = () => {
   const [systems, setSystems] = useState<{
     nodes: Node[];
-    edges: { source: number; target: number }[];
+    edges: {
+      source: number;
+      target: number;
+      sourceJumpGate: number;
+      targetJumpGate: number;
+    }[];
   }>({ nodes: [], edges: [] });
   const [loading, setLoading] = useState(true);
   const [selectedSystem, setSelectedSystem] = useState<number | null>(null);
@@ -123,15 +128,32 @@ const StarNetworkVisualization = () => {
     // Create a hierarchical layout with Sol at the center
     const layout = createHierarchicalLayout(nodesMap);
 
-    // Create edges from the connections
-    const edges: { source: number; target: number }[] = [];
+    // Create edges from the connections with jump gate information
+    const edges: {
+      source: number;
+      target: number;
+      sourceJumpGate: number;
+      targetJumpGate: number;
+    }[] = [];
+
     Object.values(nodesMap).forEach((node) => {
-      node.connected.forEach((targetId) => {
-        // Add each edge only once
-        if (node.id < targetId) {
+      // Find the original star data to get jump gate info
+      const starInfo = data.find((s) => s.systemId === node.id);
+      if (!starInfo) return;
+
+      starInfo.connectedTo.forEach((connection) => {
+        // Add each edge only once (when source id is less than target id)
+        if (node.id < connection.systemId) {
+          // Find the reverse connection to get the target's jump gate info
+          const reverseConnection = data
+            .find((s) => s.systemId === connection.systemId)
+            ?.connectedTo.find((c) => c.systemId === node.id);
+
           edges.push({
             source: node.id,
-            target: targetId,
+            target: connection.systemId,
+            sourceJumpGate: connection.jumpGateRaceId,
+            targetJumpGate: reverseConnection?.jumpGateRaceId || 0,
           });
         }
       });
@@ -448,8 +470,8 @@ const StarNetworkVisualization = () => {
       if (system.population > 1) return '#33A8FF'; // Blue for small populations
       return '#85C1E9'; // Light blue for very small populations
     }
-    // Gray for systems without colonies
-    return '#6c757d';
+    // Lighter gray for systems without colonies
+    return '#9BA5B7';
   };
 
   // Handle node hover
@@ -667,6 +689,17 @@ const StarNetworkVisualization = () => {
             <stop offset='0%' stopColor='white' stopOpacity='1' />
             <stop offset='100%' stopColor='white' stopOpacity='0' />
           </radialGradient>
+
+          {/* Jump gate gradients */}
+          <linearGradient id='jumpGateGradient' gradientUnits='userSpaceOnUse'>
+            <stop offset='0%' stopColor='#FFA500' stopOpacity='0.8' />
+            <stop offset='100%' stopColor='#FFA500' stopOpacity='0.8' />
+          </linearGradient>
+
+          <linearGradient id='normalGradient' gradientUnits='userSpaceOnUse'>
+            <stop offset='0%' stopColor='#8B95A5' stopOpacity='0.8' />
+            <stop offset='100%' stopColor='#8B95A5' stopOpacity='0.8' />
+          </linearGradient>
         </defs>
 
         <g
@@ -687,10 +720,10 @@ const StarNetworkVisualization = () => {
                       cy={0}
                       r={100 + 150 * depth}
                       fill='none'
-                      stroke='#2D3748'
+                      stroke='#4A5F82'
                       strokeWidth={1}
                       strokeDasharray='5,5'
-                      opacity={0.5}
+                      opacity={0.7}
                     />
                   )
               )}
@@ -712,17 +745,116 @@ const StarNetworkVisualization = () => {
                 (edge.source === selectedSystem ||
                   edge.target === selectedSystem);
 
+              const x1 = sourceNode.x;
+              const y1 = sourceNode.y;
+              const x2 = targetNode.x;
+              const y2 = targetNode.y;
+
+              // Determine if we have jump gates
+              const hasSourceJumpGate = edge.sourceJumpGate > 0;
+              const hasTargetJumpGate = edge.targetJumpGate > 0;
+              const hasBothJumpGates = hasSourceJumpGate && hasTargetJumpGate;
+
+              // Create unique gradient ID for this edge
+              const gradientId = `jumpLineGradient-${i}`;
+
               return (
-                <line
-                  key={`edge-${i}`}
-                  x1={sourceNode.x}
-                  y1={sourceNode.y}
-                  x2={targetNode.x}
-                  y2={targetNode.y}
-                  stroke={isHighlighted ? '#FFFFFF' : '#4A5568'}
-                  strokeWidth={isHighlighted ? 1.5 : 0.8}
-                  strokeOpacity={isHighlighted ? 1 : 0.6}
-                />
+                <g key={`edge-${i}`}>
+                  <linearGradient
+                    id={gradientId}
+                    gradientUnits='userSpaceOnUse'
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                  >
+                    {hasBothJumpGates ? (
+                      // Both ends have jump gates - solid orange
+                      <>
+                        <stop
+                          offset='0%'
+                          stopColor='#FFA500'
+                          stopOpacity='0.8'
+                        />
+                        <stop
+                          offset='100%'
+                          stopColor='#FFA500'
+                          stopOpacity='0.8'
+                        />
+                      </>
+                    ) : hasSourceJumpGate ? (
+                      // Only source has jump gate - orange to grey
+                      <>
+                        <stop
+                          offset='0%'
+                          stopColor='#FFA500'
+                          stopOpacity='0.8'
+                        />
+                        <stop
+                          offset='45%'
+                          stopColor='#FFA500'
+                          stopOpacity='0.8'
+                        />
+                        <stop
+                          offset='55%'
+                          stopColor='#8B95A5'
+                          stopOpacity='0.8'
+                        />
+                        <stop
+                          offset='100%'
+                          stopColor='#8B95A5'
+                          stopOpacity='0.8'
+                        />
+                      </>
+                    ) : hasTargetJumpGate ? (
+                      // Only target has jump gate - grey to orange
+                      <>
+                        <stop
+                          offset='0%'
+                          stopColor='#8B95A5'
+                          stopOpacity='0.8'
+                        />
+                        <stop
+                          offset='45%'
+                          stopColor='#8B95A5'
+                          stopOpacity='0.8'
+                        />
+                        <stop
+                          offset='55%'
+                          stopColor='#FFA500'
+                          stopOpacity='0.8'
+                        />
+                        <stop
+                          offset='100%'
+                          stopColor='#FFA500'
+                          stopOpacity='0.8'
+                        />
+                      </>
+                    ) : (
+                      // No jump gates - normal grey
+                      <>
+                        <stop
+                          offset='0%'
+                          stopColor='#8B95A5'
+                          stopOpacity='0.8'
+                        />
+                        <stop
+                          offset='100%'
+                          stopColor='#8B95A5'
+                          stopOpacity='0.8'
+                        />
+                      </>
+                    )}
+                  </linearGradient>
+                  <line
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke={`url(#${gradientId})`}
+                    strokeWidth={isHighlighted ? 1.5 : 0.8}
+                  />
+                </g>
               );
             })}
 
@@ -773,7 +905,7 @@ const StarNetworkVisualization = () => {
                         ? '#FFFFFF'
                         : system.hasColony
                         ? '#B2B9C5'
-                        : '#6c757d'
+                        : '#B2B9C5'
                     }
                     fontSize={highlight ? 12 : 10}
                     fontWeight={highlight ? 'bold' : 'normal'}
@@ -878,12 +1010,32 @@ const StarNetworkVisualization = () => {
           ></div>
           <span>Minor Colony (&lt;1 million)</span>
         </div>
-        <div className='flex items-center'>
+        <div className='flex items-center mb-1'>
           <div
             className='w-3 h-3 rounded-full mr-2'
-            style={{ backgroundColor: '#6c757d' }}
+            style={{ backgroundColor: '#9BA5B7' }}
           ></div>
           <span>Uninhabited System</span>
+        </div>
+
+        {/* Jump gate connection legend entries */}
+        <div className='mt-2 mb-1 font-semibold text-sm'>Connections:</div>
+        <div className='flex items-center mb-1'>
+          <div className='w-12 h-0.5 mr-2 bg-[#FFA500]'></div>
+          <span>Jump Gate Connection</span>
+        </div>
+        <div className='flex items-center mb-1'>
+          <div
+            className='w-12 h-0.5 mr-2'
+            style={{
+              background: 'linear-gradient(to right, #FFA500 45%, #8B95A5 55%)',
+            }}
+          ></div>
+          <span>Single Jump Gate</span>
+        </div>
+        <div className='flex items-center mb-1'>
+          <div className='w-12 h-0.5 mr-2 bg-[#8B95A5]'></div>
+          <span>Normal Connection</span>
         </div>
       </div>
     </div>

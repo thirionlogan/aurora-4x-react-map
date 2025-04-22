@@ -27,7 +27,7 @@ export const starData: StarData[] = [
       {
         systemId: 14296,
         systemName: 'Barnards Star',
-        jumpGateRaceId: 0,
+        jumpGateRaceId: 623,
       },
     ],
     connectionCount: 3,
@@ -59,12 +59,17 @@ export const starData: StarData[] = [
         jumpGateRaceId: 0,
       },
       {
+        systemId: 14367,
+        systemName: '70 Eridani',
+        jumpGateRaceId: 0,
+      },
+      {
         systemId: 14357,
         systemName: '82 Eridani',
         jumpGateRaceId: 0,
       },
     ],
-    connectionCount: 3,
+    connectionCount: 4,
   },
   {
     systemId: 14355,
@@ -181,6 +186,18 @@ export const starData: StarData[] = [
     connectionCount: 2,
   },
   {
+    systemId: 14367,
+    systemName: '70 Eridani',
+    connectedTo: [
+      {
+        systemId: 14346,
+        systemName: '114 Herculis',
+        jumpGateRaceId: 0,
+      },
+    ],
+    connectionCount: 1,
+  },
+  {
     systemId: 14343,
     systemName: '75 Ophiuchi',
     connectedTo: [
@@ -239,6 +256,18 @@ export const starData: StarData[] = [
     connectionCount: 1,
   },
   {
+    systemId: 14372,
+    systemName: '84 Cancri',
+    connectedTo: [
+      {
+        systemId: 14317,
+        systemName: 'Chi Gruis',
+        jumpGateRaceId: 0,
+      },
+    ],
+    connectionCount: 1,
+  },
+  {
     systemId: 14340,
     systemName: '85 Cancri',
     connectedTo: [
@@ -257,8 +286,13 @@ export const starData: StarData[] = [
         systemName: 'Gamma Telescopii',
         jumpGateRaceId: 0,
       },
+      {
+        systemId: 14317,
+        systemName: 'Chi Gruis',
+        jumpGateRaceId: 0,
+      },
     ],
-    connectionCount: 3,
+    connectionCount: 4,
   },
   {
     systemId: 14313,
@@ -292,12 +326,17 @@ export const starData: StarData[] = [
         jumpGateRaceId: 624,
       },
       {
+        systemId: 14353,
+        systemName: 'Sigma Eridani',
+        jumpGateRaceId: 624,
+      },
+      {
         systemId: 14349,
         systemName: 'Mu Reticuli',
         jumpGateRaceId: 0,
       },
     ],
-    connectionCount: 2,
+    connectionCount: 3,
   },
   {
     systemId: 14312,
@@ -367,7 +406,7 @@ export const starData: StarData[] = [
       {
         systemId: 14131,
         systemName: 'Sol',
-        jumpGateRaceId: 0,
+        jumpGateRaceId: 623,
       },
     ],
     connectionCount: 1,
@@ -389,8 +428,18 @@ export const starData: StarData[] = [
     systemName: 'Chi Gruis',
     connectedTo: [
       {
+        systemId: 14372,
+        systemName: '84 Cancri',
+        jumpGateRaceId: 0,
+      },
+      {
         systemId: 14312,
         systemName: 'AD Leonis',
+        jumpGateRaceId: 0,
+      },
+      {
+        systemId: 14340,
+        systemName: '85 Cancri',
         jumpGateRaceId: 0,
       },
       {
@@ -399,7 +448,7 @@ export const starData: StarData[] = [
         jumpGateRaceId: 0,
       },
     ],
-    connectionCount: 2,
+    connectionCount: 4,
   },
   {
     systemId: 14304,
@@ -447,7 +496,7 @@ export const starData: StarData[] = [
       {
         systemId: 14307,
         systemName: 'Wolf 359',
-        jumpGateRaceId: 0,
+        jumpGateRaceId: 623,
       },
     ],
     connectionCount: 3,
@@ -646,12 +695,22 @@ export const starData: StarData[] = [
     systemName: 'Nu Sculptoris',
     connectedTo: [
       {
+        systemId: 14371,
+        systemName: 'Vyssotsky McCormick 541',
+        jumpGateRaceId: 0,
+      },
+      {
+        systemId: 14370,
+        systemName: 'Ross 128',
+        jumpGateRaceId: 0,
+      },
+      {
         systemId: 14312,
         systemName: 'AD Leonis',
         jumpGateRaceId: 0,
       },
     ],
-    connectionCount: 1,
+    connectionCount: 3,
   },
   {
     systemId: 14324,
@@ -674,8 +733,13 @@ export const starData: StarData[] = [
         systemName: '142 Tauri',
         jumpGateRaceId: 0,
       },
+      {
+        systemId: 14366,
+        systemName: 'Teegardens Star',
+        jumpGateRaceId: 0,
+      },
     ],
-    connectionCount: 1,
+    connectionCount: 2,
   },
   {
     systemId: 14306,
@@ -783,6 +847,42 @@ export const starData: StarData[] = [
     connectionCount: 2,
   },
   {
+    systemId: 14370,
+    systemName: 'Ross 128',
+    connectedTo: [
+      {
+        systemId: 14315,
+        systemName: 'Nu Sculptoris',
+        jumpGateRaceId: 0,
+      },
+    ],
+    connectionCount: 1,
+  },
+  {
+    systemId: 14353,
+    systemName: 'Sigma Eridani',
+    connectedTo: [
+      {
+        systemId: 14332,
+        systemName: '88 Ursae Majoris',
+        jumpGateRaceId: 624,
+      },
+    ],
+    connectionCount: 1,
+  },
+  {
+    systemId: 14366,
+    systemName: 'Teegardens Star',
+    connectedTo: [
+      {
+        systemId: 14358,
+        systemName: 'Pi Librae',
+        jumpGateRaceId: 0,
+      },
+    ],
+    connectionCount: 1,
+  },
+  {
     systemId: 14326,
     systemName: 'V577 Monoceri',
     connectedTo: [
@@ -800,13 +900,25 @@ export const starData: StarData[] = [
     connectionCount: 2,
   },
   {
+    systemId: 14371,
+    systemName: 'Vyssotsky McCormick 541',
+    connectedTo: [
+      {
+        systemId: 14315,
+        systemName: 'Nu Sculptoris',
+        jumpGateRaceId: 0,
+      },
+    ],
+    connectionCount: 1,
+  },
+  {
     systemId: 14307,
     systemName: 'Wolf 359',
     connectedTo: [
       {
         systemId: 14302,
         systemName: 'Psi Ceti',
-        jumpGateRaceId: 0,
+        jumpGateRaceId: 623,
       },
       {
         systemId: 14319,
