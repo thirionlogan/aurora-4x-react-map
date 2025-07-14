@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ZoomIn, ZoomOut, Home, Search } from 'lucide-react';
-import { starData, StarData } from './data/starData';
-import { populationData } from './data/populationData';
+import { SystemConnection, PopulationData } from './dataExtraction';
 
-const StarNetworkVisualization = () => {
+interface StarNetworkVisualizationProps {
+  systemConnections: SystemConnection[];
+  populationData: PopulationData | null;
+}
+
+const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
+  systemConnections,
+  populationData,
+}) => {
   const [systems, setSystems] = useState<{
     nodes: Node[];
     edges: {
@@ -63,7 +70,7 @@ const StarNetworkVisualization = () => {
     const loadData = async () => {
       try {
         // Process the data to create a proper graph structure
-        const graph = processStarData(starData);
+        const graph = processStarData(systemConnections);
 
         setSystems(graph);
         setLoading(false);
@@ -73,11 +80,13 @@ const StarNetworkVisualization = () => {
       }
     };
 
-    loadData();
-  }, []);
+    if (systemConnections.length > 0) {
+      loadData();
+    }
+  }, [systemConnections]);
 
   // Process star data to create a well-organized graph
-  const processStarData = (data: StarData[]) => {
+  const processStarData = (data: SystemConnection[]) => {
     // Create nodes map for quick access
     const nodesMap: NodesMap = {};
     data.forEach((system) => {
@@ -117,7 +126,6 @@ const StarNetworkVisualization = () => {
               name: colonyName,
               population: colony ? colony.Population : 0,
               bodyName: colony ? colony.BodyName : '',
-              controlledBy: colony ? colony.ControlledBy : undefined,
             };
           });
           matchingSystem.hasColony = true;
@@ -550,7 +558,7 @@ const StarNetworkVisualization = () => {
   return (
     <div
       ref={containerRef}
-      className='relative w-full h-screen bg-gray-900 rounded-lg overflow-hidden'
+      className='relative w-full h-screen bg-gray-900 overflow-hidden'
     >
       {/* Controls */}
       <div className='absolute top-4 right-4 z-10 flex flex-col gap-2'>
