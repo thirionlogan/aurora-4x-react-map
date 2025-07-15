@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ZoomIn, ZoomOut, Home, Search } from 'lucide-react';
+import { ZoomIn, ZoomOut, Home, Search, Settings } from 'lucide-react';
 import { SystemConnection, PopulationData } from './dataExtraction';
 
 interface StarNetworkVisualizationProps {
   systemConnections: SystemConnection[];
   populationData: PopulationData | null;
+  onOpenSetup?: () => void;
 }
 
 const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
   systemConnections,
   populationData,
+  onOpenSetup,
 }) => {
   const [systems, setSystems] = useState<{
     nodes: Node[];
@@ -71,7 +73,6 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
       try {
         // Process the data to create a proper graph structure
         const graph = processStarData(systemConnections);
-
         setSystems(graph);
         setLoading(false);
       } catch (error) {
@@ -175,6 +176,22 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
 
   // Create a hierarchical layout from the network
   const createHierarchicalLayout = (nodesMap: NodesMap) => {
+    // Handle single system case
+    if (Object.keys(nodesMap).length === 1) {
+      const singleNode = Object.values(nodesMap)[0];
+      return {
+        nodes: {
+          [singleNode.id]: {
+            ...singleNode,
+            x: 0,
+            y: 0,
+            depth: 0,
+          },
+        },
+        levels: [new Set([singleNode.id])],
+      };
+    }
+
     // Find Sol node
     const solNode = Object.values(nodesMap).find((node) => node.name === 'Sol');
     const solId: number = solNode
@@ -306,6 +323,9 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
     nodes: Record<string, Node>,
     levels: Set<number>[]
   ): Record<string, Node> => {
+    // Skip force-directed for single node
+    if (Object.keys(nodes).length <= 1) return nodes;
+
     const NODE_REPULSION = 1000;
     const ITERATIONS = 50;
 
@@ -555,6 +575,15 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
     );
   }
 
+  // Handle case where no systems are loaded
+  if (!systems.nodes || systems.nodes.length === 0) {
+    return (
+      <div className='flex items-center justify-center h-64'>
+        <div className='text-xl'>No star systems found</div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={containerRef}
@@ -586,6 +615,15 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
         >
           <Search size={20} />
         </button>
+        {onOpenSetup && (
+          <button
+            className='bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700'
+            onClick={onOpenSetup}
+            title='Change game/race selection or upload new database'
+          >
+            <Settings size={20} />
+          </button>
+        )}
       </div>
 
       {/* Search panel */}

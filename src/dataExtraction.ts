@@ -144,15 +144,55 @@ export const extractSystemConnections = async (
     }>;
 
     if (results.length === 0) {
-      return [];
+      // Fallback query for single-system games or when no connections are found
+      const fallbackQuery = `
+        SELECT 
+          s.SystemID as systemId,
+          COALESCE(rs.Name, CASE WHEN s.SolSystem = 1 THEN 'Sol' END) as systemName,
+          '[]' as connectedTo,
+          0 as connectionCount
+        FROM FCT_System s
+        LEFT JOIN FCT_RaceSysSurvey rs ON s.SystemID = rs.SystemID 
+          AND s.GameID = rs.GameID 
+          AND rs.RaceID = ? 
+          AND rs.GameID = ?
+        WHERE s.GameID = ?
+        AND (rs.RaceID = ? OR s.SolSystem = 1)
+        ORDER BY CASE WHEN systemName = 'Sol' THEN 0 ELSE 1 END, systemName
+      `;
+
+      const fallbackResults = db.exec(fallbackQuery, [
+        raceId,
+        gameId,
+        gameId,
+        raceId,
+      ]) as Array<{
+        columns: string[];
+        values: [number, string, string, number][];
+      }>;
+
+      if (fallbackResults.length === 0) {
+        return [];
+      }
+
+      const fallbackConnections = fallbackResults[0].values.map((row) => ({
+        systemId: row[0],
+        systemName: row[1],
+        connectedTo: JSON.parse(row[2]),
+        connectionCount: row[3],
+      }));
+
+      return fallbackConnections;
     }
 
-    return results[0].values.map((row) => ({
+    const connections = results[0].values.map((row) => ({
       systemId: row[0],
       systemName: row[1],
       connectedTo: JSON.parse(row[2]),
       connectionCount: row[3],
     }));
+
+    return connections;
   } finally {
     db.close();
   }

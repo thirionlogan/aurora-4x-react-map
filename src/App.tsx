@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import StarNetworkVisualization from './StarNetworkVisualization';
-import DbUploadModal from './DbUploadModal';
-import GameSelectModal from './GameSelectModal';
-import RaceSelectModal from './RaceSelectModal';
+import SetupModal from './SetupModal';
 import {
   extractSystemConnections,
   extractPopulationData,
@@ -11,6 +9,8 @@ import {
 } from './dataExtraction';
 
 const DB_PRESENT_FLAG = 'aurora-db-present';
+const SELECTED_GAME_ID = 'aurora-selected-game-id';
+const SELECTED_RACE_ID = 'aurora-selected-race-id';
 
 function App() {
   const [dbPresent, setDbPresent] = useState(false);
@@ -24,55 +24,72 @@ function App() {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [setupComplete, setSetupComplete] = useState(false);
+  const [showSetupModal, setShowSetupModal] = useState(false);
 
   useEffect(() => {
-    setDbPresent(localStorage.getItem(DB_PRESENT_FLAG) === 'true');
+    const dbPresent = localStorage.getItem(DB_PRESENT_FLAG) === 'true';
+    const savedGameId = localStorage.getItem(SELECTED_GAME_ID);
+    const savedRaceId = localStorage.getItem(SELECTED_RACE_ID);
+
+    setDbPresent(dbPresent);
+
+    if (dbPresent && savedGameId && savedRaceId) {
+      const gameId = Number(savedGameId);
+      const raceId = Number(savedRaceId);
+      setSelectedGameId(gameId);
+      setSelectedRaceId(raceId);
+
+      // Automatically load the map with saved data
+      loadMapData(gameId, raceId);
+    }
   }, []);
 
-  const handleDbLoaded = () => {
-    setDbPresent(true);
-  };
-
-  const handleGameSelected = (gameId: number) => {
-    setSelectedGameId(gameId);
-  };
-
-  const handleRaceSelected = async (raceId: number) => {
-    setSelectedRaceId(raceId);
+  const loadMapData = async (gameId: number, raceId: number) => {
     setLoading(true);
     setError(null);
 
     try {
-      // Extract both system connections and population data
       const [connections, population] = await Promise.all([
-        extractSystemConnections(selectedGameId!, raceId),
-        extractPopulationData(selectedGameId!, raceId),
+        extractSystemConnections(gameId, raceId),
+        extractPopulationData(gameId, raceId),
       ]);
 
       setSystemConnections(connections);
       setPopulationData(population);
+      setSetupComplete(true);
     } catch (e) {
+      console.error('Error loading map data:', e);
       setError('Failed to extract data from database.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!dbPresent) {
-    return <DbUploadModal onDbLoaded={handleDbLoaded} />;
-  }
+  const handleSetupComplete = async (gameId: number, raceId: number) => {
+    setSelectedGameId(gameId);
+    setSelectedRaceId(raceId);
+    setDbPresent(true);
 
-  if (selectedGameId === null) {
-    return <GameSelectModal onGameSelected={handleGameSelected} />;
-  }
+    // Persist the selections
+    localStorage.setItem(SELECTED_GAME_ID, gameId.toString());
+    localStorage.setItem(SELECTED_RACE_ID, raceId.toString());
 
-  if (selectedRaceId === null) {
-    return (
-      <RaceSelectModal
-        selectedGameId={selectedGameId}
-        onRaceSelected={handleRaceSelected}
-      />
-    );
+    await loadMapData(gameId, raceId);
+    setShowSetupModal(false);
+  };
+
+  const handleOpenSetupModal = () => {
+    setShowSetupModal(true);
+  };
+
+  // Show setup modal if setup is not complete or if explicitly requested
+  if (
+    showSetupModal ||
+    (!setupComplete &&
+      (!dbPresent || selectedGameId === null || selectedRaceId === null))
+  ) {
+    return <SetupModal onSetupComplete={handleSetupComplete} />;
   }
 
   if (loading) {
@@ -144,6 +161,7 @@ function App() {
     <StarNetworkVisualization
       systemConnections={systemConnections}
       populationData={populationData}
+      onOpenSetup={handleOpenSetupModal}
     />
   );
 }
