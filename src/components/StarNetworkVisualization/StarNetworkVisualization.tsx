@@ -490,7 +490,7 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
 
   // Determine node color based on colony status
   const getNodeColor = (system: Node) => {
-    if (system.name === 'Sol') return '#FFD700'; // Gold for Sol
+    if (system.id === capitalSystemId) return '#FFD700'; // Gold for capital system
     if (system.hasColony) {
       // Check for alien-controlled colonies
       const alienColony = system.colonies.find((colony) => colony.controlledBy);
