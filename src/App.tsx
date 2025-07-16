@@ -4,6 +4,7 @@ import SetupModal from './SetupModal';
 import {
   extractSystemConnections,
   extractPopulationData,
+  getCapitalSystemId,
   SystemConnection,
   PopulationData,
 } from './dataExtraction';
@@ -22,6 +23,7 @@ function App() {
   const [populationData, setPopulationData] = useState<PopulationData | null>(
     null
   );
+  const [capitalSystemId, setCapitalSystemId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [setupComplete, setSetupComplete] = useState(false);
@@ -50,16 +52,17 @@ function App() {
     setError(null);
 
     try {
-      const [connections, population] = await Promise.all([
+      const [connections, population, capitalId] = await Promise.all([
         extractSystemConnections(gameId, raceId),
         extractPopulationData(gameId, raceId),
+        getCapitalSystemId(gameId, raceId),
       ]);
 
       setSystemConnections(connections);
       setPopulationData(population);
+      setCapitalSystemId(capitalId);
       setSetupComplete(true);
     } catch (e) {
-      console.error('Error loading map data:', e);
       setError('Failed to extract data from database.');
     } finally {
       setLoading(false);
@@ -161,6 +164,7 @@ function App() {
     <StarNetworkVisualization
       systemConnections={systemConnections}
       populationData={populationData}
+      capitalSystemId={capitalSystemId}
       onOpenSetup={handleOpenSetupModal}
     />
   );

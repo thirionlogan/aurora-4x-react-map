@@ -5,12 +5,14 @@ import { SystemConnection, PopulationData } from './dataExtraction';
 interface StarNetworkVisualizationProps {
   systemConnections: SystemConnection[];
   populationData: PopulationData | null;
+  capitalSystemId?: number | null;
   onOpenSetup?: () => void;
 }
 
 const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
   systemConnections,
   populationData,
+  capitalSystemId,
   onOpenSetup,
 }) => {
   const [systems, setSystems] = useState<{
@@ -176,6 +178,19 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
 
   // Create a hierarchical layout from the network
   const createHierarchicalLayout = (nodesMap: NodesMap) => {
+    // Use the capitalSystemId as the root if available
+    let rootNode: (typeof nodesMap)[string] | undefined = undefined;
+    if (capitalSystemId && nodesMap[capitalSystemId]) {
+      rootNode = nodesMap[capitalSystemId];
+    }
+    if (!rootNode) {
+      // Fallback: use Sol if present, otherwise first node
+      rootNode =
+        Object.values(nodesMap).find((node) => node.name === 'Sol') ||
+        Object.values(nodesMap)[0];
+    }
+    const rootId: number = rootNode.id;
+
     // Handle single system case
     if (Object.keys(nodesMap).length === 1) {
       const singleNode = Object.values(nodesMap)[0];
@@ -192,16 +207,10 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
       };
     }
 
-    // Find Sol node
-    const solNode = Object.values(nodesMap).find((node) => node.name === 'Sol');
-    const solId: number = solNode
-      ? solNode.id
-      : parseInt(Object.keys(nodesMap)[0]);
-
     // Build levels using BFS
-    const visited = new Set<number>([solId]);
-    const levels: Set<number>[] = [new Set<number>([solId])];
-    const nodeDepth: Record<number, number> = { [solId]: 0 };
+    const visited = new Set<number>([rootId]);
+    const levels: Set<number>[] = [new Set<number>([rootId])];
+    const nodeDepth: Record<number, number> = { [rootId]: 0 };
     const nodeParent: Record<number, number> = {};
 
     // Helper function to explore a level
@@ -260,9 +269,9 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
     const BASE_RADIUS = 100;
     const LEVEL_SPACING = 150;
 
-    // Position Sol at center
-    nodes[solId] = {
-      ...nodesMap[solId],
+    // Position root at center
+    nodes[rootId] = {
+      ...nodesMap[rootId],
       x: 0,
       y: 0,
       depth: 0,
@@ -567,6 +576,21 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
     }
   };
 
+  // Only show systems present in the systemConnections data
+  const filteredNodesMap = React.useMemo(() => {
+    const allowedIds = new Set(systemConnections.map((s) => s.systemId));
+    return Object.fromEntries(
+      Object.entries(systems.nodes || {}).filter(([id]) =>
+        allowedIds.has(Number(id))
+      )
+    );
+  }, [systems.nodes, systemConnections]);
+
+  const allowedSystemIds = React.useMemo(
+    () => new Set(systemConnections.map((s) => s.systemId)),
+    [systemConnections]
+  );
+
   if (loading) {
     return (
       <div className='flex items-center justify-center h-64'>
@@ -776,198 +800,206 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
 
           {/* Jump connections */}
           {systems.edges &&
-            systems.edges.map((edge, i) => {
-              const sourceNode = systems.nodes.find(
-                (n: Node) => n.id === edge.source
-              );
-              const targetNode = systems.nodes.find(
-                (n: Node) => n.id === edge.target
-              );
+            systems.edges
+              .filter(
+                (edge) =>
+                  allowedSystemIds.has(edge.source) &&
+                  allowedSystemIds.has(edge.target)
+              )
+              .map((edge, i) => {
+                const sourceNode = systems.nodes.find(
+                  (n: Node) => n.id === edge.source
+                );
+                const targetNode = systems.nodes.find(
+                  (n: Node) => n.id === edge.target
+                );
 
-              if (!sourceNode || !targetNode) return null;
+                if (!sourceNode || !targetNode) return null;
 
-              const isHighlighted =
-                selectedSystem &&
-                (edge.source === selectedSystem ||
-                  edge.target === selectedSystem);
+                const isHighlighted =
+                  selectedSystem &&
+                  (edge.source === selectedSystem ||
+                    edge.target === selectedSystem);
 
-              const x1 = sourceNode.x;
-              const y1 = sourceNode.y;
-              const x2 = targetNode.x;
-              const y2 = targetNode.y;
+                const x1 = sourceNode.x;
+                const y1 = sourceNode.y;
+                const x2 = targetNode.x;
+                const y2 = targetNode.y;
 
-              // Determine if we have jump gates
-              const hasSourceJumpGate = edge.sourceJumpGate > 0;
-              const hasTargetJumpGate = edge.targetJumpGate > 0;
-              const hasBothJumpGates = hasSourceJumpGate && hasTargetJumpGate;
+                // Determine if we have jump gates
+                const hasSourceJumpGate = edge.sourceJumpGate > 0;
+                const hasTargetJumpGate = edge.targetJumpGate > 0;
+                const hasBothJumpGates = hasSourceJumpGate && hasTargetJumpGate;
 
-              // Create unique gradient ID for this edge
-              const gradientId = `jumpLineGradient-${i}`;
+                // Create unique gradient ID for this edge
+                const gradientId = `jumpLineGradient-${i}`;
 
-              return (
-                <g key={`edge-${i}`}>
-                  <linearGradient
-                    id={gradientId}
-                    gradientUnits='userSpaceOnUse'
-                    x1={x1}
-                    y1={y1}
-                    x2={x2}
-                    y2={y2}
-                  >
-                    {hasBothJumpGates ? (
-                      // Both ends have jump gates - solid orange
-                      <>
-                        <stop
-                          offset='0%'
-                          stopColor='#FFA500'
-                          stopOpacity='0.8'
-                        />
-                        <stop
-                          offset='100%'
-                          stopColor='#FFA500'
-                          stopOpacity='0.8'
-                        />
-                      </>
-                    ) : hasSourceJumpGate ? (
-                      // Only source has jump gate - orange to grey
-                      <>
-                        <stop
-                          offset='0%'
-                          stopColor='#FFA500'
-                          stopOpacity='0.8'
-                        />
-                        <stop
-                          offset='45%'
-                          stopColor='#FFA500'
-                          stopOpacity='0.8'
-                        />
-                        <stop
-                          offset='55%'
-                          stopColor='#8B95A5'
-                          stopOpacity='0.8'
-                        />
-                        <stop
-                          offset='100%'
-                          stopColor='#8B95A5'
-                          stopOpacity='0.8'
-                        />
-                      </>
-                    ) : hasTargetJumpGate ? (
-                      // Only target has jump gate - grey to orange
-                      <>
-                        <stop
-                          offset='0%'
-                          stopColor='#8B95A5'
-                          stopOpacity='0.8'
-                        />
-                        <stop
-                          offset='45%'
-                          stopColor='#8B95A5'
-                          stopOpacity='0.8'
-                        />
-                        <stop
-                          offset='55%'
-                          stopColor='#FFA500'
-                          stopOpacity='0.8'
-                        />
-                        <stop
-                          offset='100%'
-                          stopColor='#FFA500'
-                          stopOpacity='0.8'
-                        />
-                      </>
-                    ) : (
-                      // No jump gates - normal grey
-                      <>
-                        <stop
-                          offset='0%'
-                          stopColor='#8B95A5'
-                          stopOpacity='0.8'
-                        />
-                        <stop
-                          offset='100%'
-                          stopColor='#8B95A5'
-                          stopOpacity='0.8'
-                        />
-                      </>
-                    )}
-                  </linearGradient>
-                  <line
-                    x1={x1}
-                    y1={y1}
-                    x2={x2}
-                    y2={y2}
-                    stroke={`url(#${gradientId})`}
-                    strokeWidth={isHighlighted ? 1.5 : 0.8}
-                  />
-                </g>
-              );
-            })}
+                return (
+                  <g key={`edge-${i}`}>
+                    <linearGradient
+                      id={gradientId}
+                      gradientUnits='userSpaceOnUse'
+                      x1={x1}
+                      y1={y1}
+                      x2={x2}
+                      y2={y2}
+                    >
+                      {hasBothJumpGates ? (
+                        // Both ends have jump gates - solid orange
+                        <>
+                          <stop
+                            offset='0%'
+                            stopColor='#FFA500'
+                            stopOpacity='0.8'
+                          />
+                          <stop
+                            offset='100%'
+                            stopColor='#FFA500'
+                            stopOpacity='0.8'
+                          />
+                        </>
+                      ) : hasSourceJumpGate ? (
+                        // Only source has jump gate - orange to grey
+                        <>
+                          <stop
+                            offset='0%'
+                            stopColor='#FFA500'
+                            stopOpacity='0.8'
+                          />
+                          <stop
+                            offset='45%'
+                            stopColor='#FFA500'
+                            stopOpacity='0.8'
+                          />
+                          <stop
+                            offset='55%'
+                            stopColor='#8B95A5'
+                            stopOpacity='0.8'
+                          />
+                          <stop
+                            offset='100%'
+                            stopColor='#8B95A5'
+                            stopOpacity='0.8'
+                          />
+                        </>
+                      ) : hasTargetJumpGate ? (
+                        // Only target has jump gate - grey to orange
+                        <>
+                          <stop
+                            offset='0%'
+                            stopColor='#8B95A5'
+                            stopOpacity='0.8'
+                          />
+                          <stop
+                            offset='45%'
+                            stopColor='#8B95A5'
+                            stopOpacity='0.8'
+                          />
+                          <stop
+                            offset='55%'
+                            stopColor='#FFA500'
+                            stopOpacity='0.8'
+                          />
+                          <stop
+                            offset='100%'
+                            stopColor='#FFA500'
+                            stopOpacity='0.8'
+                          />
+                        </>
+                      ) : (
+                        // No jump gates - normal grey
+                        <>
+                          <stop
+                            offset='0%'
+                            stopColor='#8B95A5'
+                            stopOpacity='0.8'
+                          />
+                          <stop
+                            offset='100%'
+                            stopColor='#8B95A5'
+                            stopOpacity='0.8'
+                          />
+                        </>
+                      )}
+                    </linearGradient>
+                    <line
+                      x1={x1}
+                      y1={y1}
+                      x2={x2}
+                      y2={y2}
+                      stroke={`url(#${gradientId})`}
+                      strokeWidth={isHighlighted ? 1.5 : 0.8}
+                    />
+                  </g>
+                );
+              })}
 
           {/* Star systems */}
           {systems.nodes &&
-            systems.nodes.map((system) => {
-              const isSelected = selectedSystem === system.id;
-              const isConnected =
-                selectedSystem &&
-                getConnectedSystems(selectedSystem).some(
-                  (s) => s.id === system.id
-                );
-              const isHovered = hoveredSystem === system.id;
-              const highlight = isSelected || isConnected || isHovered;
+            systems.nodes
+              .filter((system) => allowedSystemIds.has(system.id))
+              .map((system) => {
+                const isSelected = selectedSystem === system.id;
+                const isConnected =
+                  selectedSystem &&
+                  getConnectedSystems(selectedSystem).some(
+                    (s) => s.id === system.id
+                  );
+                const isHovered = hoveredSystem === system.id;
+                const highlight = isSelected || isConnected || isHovered;
 
-              return (
-                <g
-                  key={system.id}
-                  transform={`translate(${system.x}, ${system.y})`}
-                  onClick={() => handleSystemClick(system.id)}
-                  onMouseEnter={() => handleMouseEnter(system.id)}
-                  onMouseLeave={handleMouseLeave}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {/* Glow effect for systems with colonies */}
-                  {system.hasColony && (
-                    <circle
-                      r={getNodeSize(system) * 2.5}
-                      fill='url(#star-glow)'
-                      opacity={highlight ? 0.7 : 0.3}
-                    />
-                  )}
-
-                  {/* The star system */}
-                  <circle
-                    r={getNodeSize(system)}
-                    fill={getNodeColor(system)}
-                    stroke={highlight ? '#FFFFFF' : 'transparent'}
-                    strokeWidth={1.5}
-                  />
-
-                  {/* System name and population if it has colonies */}
-                  <text
-                    dy={-getNodeSize(system) - 8}
-                    textAnchor='middle'
-                    fill={
-                      highlight
-                        ? '#FFFFFF'
-                        : system.hasColony
-                        ? '#B2B9C5'
-                        : '#B2B9C5'
-                    }
-                    fontSize={highlight ? 12 : 10}
-                    fontWeight={highlight ? 'bold' : 'normal'}
-                    style={{
-                      textShadow:
-                        '0 0 3px #000, 0 0 3px #000, 0 0 3px #000, 0 0 3px #000',
-                    }}
+                return (
+                  <g
+                    key={system.id}
+                    transform={`translate(${system.x}, ${system.y})`}
+                    onClick={() => handleSystemClick(system.id)}
+                    onMouseEnter={() => handleMouseEnter(system.id)}
+                    onMouseLeave={handleMouseLeave}
+                    style={{ cursor: 'pointer' }}
                   >
-                    {system.name}
-                    {system.hasColony
-                      ? ` (${system.population.toFixed(1)})`
-                      : ''}
-                  </text>
-                </g>
-              );
-            })}
+                    {/* Glow effect for systems with colonies */}
+                    {system.hasColony && (
+                      <circle
+                        r={getNodeSize(system) * 2.5}
+                        fill='url(#star-glow)'
+                        opacity={highlight ? 0.7 : 0.3}
+                      />
+                    )}
+
+                    {/* The star system */}
+                    <circle
+                      r={getNodeSize(system)}
+                      fill={getNodeColor(system)}
+                      stroke={highlight ? '#FFFFFF' : 'transparent'}
+                      strokeWidth={1.5}
+                    />
+
+                    {/* System name and population if it has colonies */}
+                    <text
+                      dy={-getNodeSize(system) - 8}
+                      textAnchor='middle'
+                      fill={
+                        highlight
+                          ? '#FFFFFF'
+                          : system.hasColony
+                          ? '#B2B9C5'
+                          : '#B2B9C5'
+                      }
+                      fontSize={highlight ? 12 : 10}
+                      fontWeight={highlight ? 'bold' : 'normal'}
+                      style={{
+                        textShadow:
+                          '0 0 3px #000, 0 0 3px #000, 0 0 3px #000, 0 0 3px #000',
+                      }}
+                    >
+                      {system.name}
+                      {system.hasColony
+                        ? ` (${system.population.toFixed(1)})`
+                        : ''}
+                    </text>
+                  </g>
+                );
+              })}
         </g>
       </svg>
 

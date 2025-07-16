@@ -69,22 +69,17 @@ export const extractSystemConnections = async (
     const query = `
       WITH SystemNames AS (
           -- Get system names from FCT_RaceSysSurvey and FCT_System
-          -- Only include systems that have been surveyed by the specified race or are Sol
+          -- Only include systems that have been surveyed by the specified race
           SELECT DISTINCT
               s.SystemID,
-              COALESCE(
-                  rs.Name,
-                  CASE
-                      WHEN s.SolSystem = 1 THEN 'Sol'
-                  END
-              ) as SystemName
+              rs.Name as SystemName
           FROM FCT_System s
           LEFT JOIN FCT_RaceSysSurvey rs ON s.SystemID = rs.SystemID
               AND s.GameID = rs.GameID
               AND rs.RaceID = ?
               AND rs.GameID = ?
           WHERE s.GameID = ?
-          AND (rs.RaceID = ? OR s.SolSystem = 1)  -- Only include surveyed systems or Sol
+          AND rs.RaceID = ?  -- Only include surveyed systems
       ),
       ConnectedSystems AS (
           -- First get the source system and the destination warp point ID
@@ -128,7 +123,6 @@ export const extractSystemConnections = async (
       FROM SystemLinks
       GROUP BY SourceSystemID, SourceSystemName
       ORDER BY
-          CASE WHEN SourceSystemName = 'Sol' THEN 0 ELSE 1 END,
           SourceSystemName;
     `;
 
@@ -148,7 +142,7 @@ export const extractSystemConnections = async (
       const fallbackQuery = `
         SELECT 
           s.SystemID as systemId,
-          COALESCE(rs.Name, CASE WHEN s.SolSystem = 1 THEN 'Sol' END) as systemName,
+          rs.Name as systemName,
           '[]' as connectedTo,
           0 as connectionCount
         FROM FCT_System s
@@ -157,8 +151,8 @@ export const extractSystemConnections = async (
           AND rs.RaceID = ? 
           AND rs.GameID = ?
         WHERE s.GameID = ?
-        AND (rs.RaceID = ? OR s.SolSystem = 1)
-        ORDER BY CASE WHEN systemName = 'Sol' THEN 0 ELSE 1 END, systemName
+        AND rs.RaceID = ?
+        ORDER BY systemName
       `;
 
       const fallbackResults = db.exec(fallbackQuery, [
@@ -315,6 +309,31 @@ export const extractPopulationData = async (
       colonies: colonies,
       systemDistribution: systemDistribution,
     };
+  } finally {
+    db.close();
+  }
+};
+
+export const getCapitalSystemId = async (
+  gameId: number,
+  raceId: number
+): Promise<number | null> => {
+  const dbArrayBuffer = await get(DB_KEY);
+  if (!dbArrayBuffer) throw new Error('No database found.');
+  const SQL = await window.initSqlJs({
+    locateFile: (file: string) =>
+      `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.13.0/${file}`,
+  });
+  const db = new SQL.Database(new Uint8Array(dbArrayBuffer));
+  try {
+    const result = db.exec(
+      `SELECT SystemID FROM FCT_Population WHERE GameID = ? AND RaceID = ? AND Capital = 1 LIMIT 1`,
+      [gameId, raceId]
+    );
+    if (result.length > 0 && result[0].values.length > 0) {
+      return result[0].values[0][0] as number;
+    }
+    return null;
   } finally {
     db.close();
   }
