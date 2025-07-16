@@ -591,6 +591,8 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
     [systemConnections]
   );
 
+  const capitalNode = systems.nodes.find((n: Node) => n.id === capitalSystemId);
+
   if (loading) {
     return (
       <div className='flex items-center justify-center h-64'>
@@ -1051,7 +1053,13 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
             className='w-3 h-3 rounded-full mr-2'
             style={{ backgroundColor: '#FFD700' }}
           ></div>
-          <span>Sol (1541.18 million)</span>
+          <span>
+            {capitalNode
+              ? `${capitalNode.name} (${capitalNode.population.toFixed(
+                  2
+                )} million)`
+              : 'Capital System'}
+          </span>
         </div>
         <div className='flex items-center mb-1'>
           <div

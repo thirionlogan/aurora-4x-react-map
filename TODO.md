@@ -4,3 +4,4 @@
 - [ ] Dark / Light mode
 - [x] make the modal pretty
 - [x] remember game and race selection
+- [ ] Cancel button in modal doesn't work and shouldn't appear if there's no game or race selected
