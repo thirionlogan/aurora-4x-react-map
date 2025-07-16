@@ -86,13 +86,24 @@ function App() {
     setShowSetupModal(true);
   };
 
+  const handleCancelSetup = () => {
+    setShowSetupModal(false);
+  };
+
   // Show setup modal if setup is not complete or if explicitly requested
   if (
     showSetupModal ||
     (!setupComplete &&
       (!dbPresent || selectedGameId === null || selectedRaceId === null))
   ) {
-    return <SetupModal onSetupComplete={handleSetupComplete} />;
+    return (
+      <SetupModal
+        onSetupComplete={handleSetupComplete}
+        onCancel={handleCancelSetup}
+        selectedGameId={selectedGameId}
+        selectedRaceId={selectedRaceId}
+      />
+    );
   }
 
   if (loading) {

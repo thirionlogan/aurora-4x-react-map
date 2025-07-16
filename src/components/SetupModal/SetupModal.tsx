@@ -1,22 +1,35 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { get, set } from 'idb-keyval';
+import { set } from 'idb-keyval';
 import { executeQuery, databaseExists } from '../../utils';
 import { SetupModalProps, Game, Race } from './SetupModal.types';
 
 const DB_KEY = 'aurora-db';
 const DB_PRESENT_FLAG = 'aurora-db-present';
 
-const SetupModal: React.FC<SetupModalProps> = ({ onSetupComplete }) => {
+const SetupModal: React.FC<SetupModalProps> = ({
+  onSetupComplete,
+  onCancel,
+  selectedGameId: initialGameId = null,
+  selectedRaceId: initialRaceId = null,
+}) => {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [databaseFileName, setDatabaseFileName] = useState<string>('');
   const [games, setGames] = useState<Game[]>([]);
   const [races, setRaces] = useState<Race[]>([]);
-  const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
-  const [selectedRaceId, setSelectedRaceId] = useState<number | null>(null);
+  const [selectedGameId, setSelectedGameId] = useState<number | null>(
+    initialGameId
+  );
+  const [selectedRaceId, setSelectedRaceId] = useState<number | null>(
+    initialRaceId
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Track original selections to determine if we can cancel
+  const [originalGameId] = useState<number | null>(initialGameId);
+  const [originalRaceId] = useState<number | null>(initialRaceId);
 
   const loadGames = async () => {
     try {
@@ -59,13 +72,18 @@ const SetupModal: React.FC<SetupModalProps> = ({ onSetupComplete }) => {
           // Database exists, set a placeholder filename and load games
           setDatabaseFileName('AuroraDB.db (uploaded)');
           await loadGames();
+
+          // If we have a pre-selected game, load its races
+          if (initialGameId) {
+            await loadRaces(initialGameId);
+          }
         }
       } catch (e) {
         // Database doesn't exist or is invalid
       }
     };
     checkExistingDb();
-  }, []);
+  }, [initialGameId]);
 
   const handleFile = useCallback(async (file: File) => {
     setSelectedFile(file);
@@ -135,8 +153,19 @@ const SetupModal: React.FC<SetupModalProps> = ({ onSetupComplete }) => {
     }
   };
 
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    }
+  };
+
   const canProceed = () => {
     return selectedGameId !== null && selectedRaceId !== null;
+  };
+
+  const canCancel = () => {
+    // Show cancel button if we have original selections to revert to
+    return originalGameId !== null && originalRaceId !== null;
   };
 
   return (
@@ -147,9 +176,6 @@ const SetupModal: React.FC<SetupModalProps> = ({ onSetupComplete }) => {
           <p className='setup-modal-subtitle'>
             Upload your game database and select parameters
           </p>
-          <button className='setup-close-button' aria-label='Close modal'>
-            ×
-          </button>
         </div>
 
         <div className='setup-modal-body'>
@@ -256,9 +282,15 @@ const SetupModal: React.FC<SetupModalProps> = ({ onSetupComplete }) => {
         </div>
 
         <div className='setup-modal-footer'>
-          <button type='button' className='setup-button setup-button-secondary'>
-            Cancel
-          </button>
+          {canCancel() && (
+            <button
+              type='button'
+              className='setup-button setup-button-secondary'
+              onClick={handleCancel}
+            >
+              Cancel
+            </button>
+          )}
           <button
             type='button'
             className='setup-button setup-button-primary'
