@@ -647,91 +647,98 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
         )}
       </div>
 
-      {/* Search panel */}
-      {showSearch && (
-        <div className='absolute top-4 left-4 z-10 bg-gray-800 bg-opacity-90 text-white p-4 rounded-lg w-64'>
-          <input
-            type='text'
-            placeholder='Search star systems...'
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className='w-full bg-gray-700 text-white px-3 py-2 rounded-md mb-2'
-          />
-          {searchResults.length > 0 && (
-            <ul className='bg-gray-700 rounded-md overflow-hidden'>
-              {searchResults.map((result) => (
-                <li
-                  key={result.id}
-                  className='px-3 py-2 hover:bg-gray-600 cursor-pointer'
-                  onClick={() => handleSearchSelect(result.id)}
-                >
-                  {result.name} ({result.connections} connections)
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      {/* Info and Search Container */}
+      <div className='absolute top-4 left-4 z-10 flex flex-col gap-4'>
+        {/* Info panel */}
+        {selectedSystem && (
+          <div className='bg-gray-800 bg-opacity-90 text-white p-4 rounded-lg max-w-xs'>
+            {systems.nodes &&
+              (() => {
+                const system = systems.nodes.find(
+                  (n: Node) => n.id === selectedSystem
+                );
+                if (!system) return null;
 
-      {/* Info panel */}
-      {selectedSystem && (
-        <div className='absolute top-4 left-4 z-10 bg-gray-800 bg-opacity-90 text-white p-4 rounded-lg max-w-xs'>
-          {systems.nodes &&
-            (() => {
-              const system = systems.nodes.find(
-                (n: Node) => n.id === selectedSystem
-              );
-              if (!system) return null;
+                return (
+                  <>
+                    <h3 className='text-lg font-bold mb-2'>{system.name}</h3>
+                    <p className='mb-1'>System ID: {system.id}</p>
+                    <p className='mb-1'>Connections: {system.connections}</p>
 
-              return (
-                <>
-                  <h3 className='text-lg font-bold mb-2'>{system.name}</h3>
-                  <p className='mb-1'>System ID: {system.id}</p>
-                  <p className='mb-1'>Connections: {system.connections}</p>
+                    {system.hasColony && (
+                      <>
+                        <p className='mb-2'>
+                          <span className='font-semibold'>
+                            Total Population:
+                          </span>{' '}
+                          {system.population.toFixed(2)} million
+                        </p>
 
-                  {system.hasColony && (
-                    <>
-                      <p className='mb-2'>
-                        <span className='font-semibold'>Total Population:</span>{' '}
-                        {system.population.toFixed(2)} million
-                      </p>
-
-                      <h4 className='font-semibold mt-2 mb-1'>Colonies:</h4>
-                      <ul className='list-disc list-inside'>
-                        {system.colonies.map((colony, index) => (
-                          <li key={index} className='text-sm mb-1'>
-                            <span className='font-medium'>{colony.name}</span>
-                            {colony.bodyName && ` (${colony.bodyName})`}:{' '}
-                            {colony.population.toFixed(2)} million
-                            {colony.controlledBy && (
-                              <span className='text-purple-400'>
-                                {' '}
-                                - Controlled by {colony.controlledBy}
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
-
-                  <h4 className='font-semibold mt-3 mb-1'>Connected to:</h4>
-                  <ul className='list-disc list-inside'>
-                    {getConnectedSystems(selectedSystem).map(
-                      (connectedSystem) => (
-                        <li key={connectedSystem.id} className='text-sm'>
-                          {connectedSystem.name}
-                          {connectedSystem.hasColony &&
-                            ` (Pop: ${connectedSystem.population.toFixed(1)})`}
-                        </li>
-                      )
+                        <h4 className='font-semibold mt-2 mb-1'>Colonies:</h4>
+                        <ul className='list-disc list-inside'>
+                          {system.colonies.map((colony, index) => (
+                            <li key={index} className='text-sm mb-1'>
+                              <span className='font-medium'>{colony.name}</span>
+                              {colony.bodyName && ` (${colony.bodyName})`}:{' '}
+                              {colony.population.toFixed(2)} million
+                              {colony.controlledBy && (
+                                <span className='text-purple-400'>
+                                  {' '}
+                                  - Controlled by {colony.controlledBy}
+                                </span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
                     )}
-                  </ul>
-                </>
-              );
-            })()}
-        </div>
-      )}
+
+                    <h4 className='font-semibold mt-3 mb-1'>Connected to:</h4>
+                    <ul className='list-disc list-inside'>
+                      {getConnectedSystems(selectedSystem).map(
+                        (connectedSystem) => (
+                          <li key={connectedSystem.id} className='text-sm'>
+                            {connectedSystem.name}
+                            {connectedSystem.hasColony &&
+                              ` (Pop: ${connectedSystem.population.toFixed(
+                                1
+                              )})`}
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  </>
+                );
+              })()}
+          </div>
+        )}
+
+        {/* Search panel */}
+        {showSearch && (
+          <div className='bg-gray-800 bg-opacity-90 text-white p-4 rounded-lg w-64'>
+            <input
+              type='text'
+              placeholder='Search star systems...'
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className='w-full bg-gray-700 text-white px-3 py-2 rounded-md mb-2'
+            />
+            {searchResults.length > 0 && (
+              <ul className='bg-gray-700 rounded-md overflow-hidden'>
+                {searchResults.map((result) => (
+                  <li
+                    key={result.id}
+                    className='px-3 py-2 hover:bg-gray-600 cursor-pointer'
+                    onClick={() => handleSearchSelect(result.id)}
+                  >
+                    {result.name} ({result.connections} connections)
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Star map */}
       <svg
