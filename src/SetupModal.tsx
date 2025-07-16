@@ -1,11 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { get, set } from 'idb-keyval';
-
-declare global {
-  interface Window {
-    initSqlJs: any;
-  }
-}
+import { executeQuery, databaseExists } from './utils/database';
 
 interface SetupModalProps {
   onSetupComplete: (gameId: number, raceId: number) => void;
@@ -38,18 +33,9 @@ const SetupModal: React.FC<SetupModalProps> = ({ onSetupComplete }) => {
 
   const loadGames = async () => {
     try {
-      const dbArrayBuffer = await get(DB_KEY);
-      if (!dbArrayBuffer) {
-        setError('No database found.');
-        return;
-      }
-
-      const SQL = await window.initSqlJs({
-        locateFile: (file: string) =>
-          `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.13.0/${file}`,
-      });
-      const db = new SQL.Database(new Uint8Array(dbArrayBuffer));
-      const result = db.exec('SELECT GameID, GameName FROM FCT_Game');
+      const result = await executeQuery(
+        'SELECT GameID, GameName FROM FCT_Game'
+      );
       if (result.length === 0) {
         setGames([]);
       } else {
@@ -63,18 +49,7 @@ const SetupModal: React.FC<SetupModalProps> = ({ onSetupComplete }) => {
 
   const loadRaces = async (gameId: number) => {
     try {
-      const dbArrayBuffer = await get(DB_KEY);
-      if (!dbArrayBuffer) {
-        setError('No database found.');
-        return;
-      }
-
-      const SQL = await window.initSqlJs({
-        locateFile: (file: string) =>
-          `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.13.0/${file}`,
-      });
-      const db = new SQL.Database(new Uint8Array(dbArrayBuffer));
-      const result = db.exec(
+      const result = await executeQuery(
         'SELECT RaceID, RaceName FROM FCT_Race WHERE GameID = ?',
         [gameId]
       );
@@ -93,8 +68,7 @@ const SetupModal: React.FC<SetupModalProps> = ({ onSetupComplete }) => {
   useEffect(() => {
     const checkExistingDb = async () => {
       try {
-        const dbArrayBuffer = await get(DB_KEY);
-        if (dbArrayBuffer) {
+        if (await databaseExists()) {
           // Database exists, set a placeholder filename and load games
           setDatabaseFileName('AuroraDB.db (uploaded)');
           await loadGames();
