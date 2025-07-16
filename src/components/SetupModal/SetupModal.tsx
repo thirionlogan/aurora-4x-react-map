@@ -1,20 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { get, set } from 'idb-keyval';
-import { executeQuery, databaseExists } from './utils/database';
-
-interface SetupModalProps {
-  onSetupComplete: (gameId: number, raceId: number) => void;
-}
-
-interface Game {
-  GameID: number;
-  GameName: string;
-}
-
-interface Race {
-  RaceID: number;
-  RaceName: string;
-}
+import { executeQuery, databaseExists } from '../../utils';
+import { SetupModalProps, Game, Race } from './SetupModal.types';
 
 const DB_KEY = 'aurora-db';
 const DB_PRESENT_FLAG = 'aurora-db-present';

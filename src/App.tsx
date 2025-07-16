@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import StarNetworkVisualization from './StarNetworkVisualization';
-import SetupModal from './SetupModal';
+import StarNetworkVisualization from './components/StarNetworkVisualization/StarNetworkVisualization';
+import SetupModal from './components/SetupModal/SetupModal';
 import {
   extractSystemConnections,
   extractPopulationData,
   getCapitalSystemId,
   SystemConnection,
   PopulationData,
-} from './dataExtraction';
+} from './utils';
 
 const DB_PRESENT_FLAG = 'aurora-db-present';
 const SELECTED_GAME_ID = 'aurora-selected-game-id';

@@ -1,11 +1,5 @@
 import React from 'react';
-
-interface MapLegendProps {
-  capitalNode?: {
-    name: string;
-    population: number;
-  } | null;
-}
+import { MapLegendProps } from './MapLegend.types';
 
 const MapLegend: React.FC<MapLegendProps> = ({ capitalNode }) => {
   return (

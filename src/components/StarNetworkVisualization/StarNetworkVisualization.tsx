@@ -1,14 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ZoomIn, ZoomOut, Home, Search, Settings } from 'lucide-react';
-import { SystemConnection, PopulationData } from './dataExtraction';
-import MapLegend from './components/MapLegend';
-
-interface StarNetworkVisualizationProps {
-  systemConnections: SystemConnection[];
-  populationData: PopulationData | null;
-  capitalSystemId?: number | null;
-  onOpenSetup?: () => void;
-}
+import { SystemConnection } from '../../utils';
+import MapLegend from '../MapLegend/MapLegend';
+import { StarNetworkVisualizationProps } from './StarNetworkVisualization.types';
 
 const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
   systemConnections,
