@@ -1,7 +1,7 @@
 - [x] Combine DB upload / Game selection / race selection into one modal
 - [x] be able to reopen the modal from the map view to reselect the game or race -[ ] Instead of assuming that Sol is the homeworld that the map should be anchored to, dynamically find the homeworld for the selected race
-- [ ] handle alien races
+- [x] handle alien races
 - [ ] Dark / Light mode
 - [x] make the modal pretty
 - [x] remember game and race selection
-- [ ] Cancel button in modal doesn't work and shouldn't appear if there's no game or race selected
+- [x] Cancel button in modal doesn't work and shouldn't appear if there's no game or race selected

@@ -177,6 +177,7 @@ function App() {
       populationData={populationData}
       capitalSystemId={capitalSystemId}
       onOpenSetup={handleOpenSetupModal}
+      selectedRaceId={selectedRaceId}
     />
   );
 }

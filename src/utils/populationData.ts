@@ -42,18 +42,21 @@ export const extractPopulationData = async (
     TotalPopulation: popStats[2],
   };
 
-  // Get detailed colony information
+  // Get detailed colony information (including alien colonies in surveyed systems)
   const coloniesQuery = `
     SELECT 
       p.PopulationID,
       p.PopName as PopulationName,
       p.Population,
       rss.Name as SystemName,
-      COALESCE(sb.Name, '') as BodyName
+      COALESCE(sb.Name, '') as BodyName,
+      p.RaceID as ControllingRaceID,
+      r.RaceName as ControllingRaceName
     FROM FCT_Population p
-    JOIN FCT_RaceSysSurvey rss ON p.SystemID = rss.SystemID AND p.GameID = rss.GameID AND p.RaceID = rss.RaceID
+    JOIN FCT_RaceSysSurvey rss ON p.SystemID = rss.SystemID AND p.GameID = rss.GameID
     LEFT JOIN FCT_SystemBody sb ON p.SystemBodyID = sb.SystemBodyID AND p.GameID = sb.GameID
-    WHERE p.RaceID = ? AND p.GameID = ? AND p.Population > 0
+    JOIN FCT_Race r ON p.RaceID = r.RaceID AND p.GameID = r.GameID
+    WHERE rss.RaceID = ? AND rss.GameID = ? AND p.Population > 0
     ORDER BY p.Population DESC
   `;
 
@@ -62,7 +65,7 @@ export const extractPopulationData = async (
     gameId,
   ])) as Array<{
     columns: string[];
-    values: [number, string, number, string, string][];
+    values: [number, string, number, string, string, number, string][];
   }>;
 
   const colonies: ColonyDetails[] =
@@ -73,6 +76,8 @@ export const extractPopulationData = async (
           Population: row[2],
           SystemName: row[3],
           BodyName: row[4],
+          ControllingRaceID: row[5],
+          ControllingRaceName: row[6],
         }))
       : [];
 

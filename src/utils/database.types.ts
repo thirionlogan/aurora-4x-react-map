@@ -21,6 +21,8 @@ export interface ColonyDetails {
   Population: number;
   SystemName: string;
   BodyName: string;
+  ControllingRaceID: number;
+  ControllingRaceName: string;
 }
 
 export interface SystemDistribution {

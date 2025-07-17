@@ -2,13 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ZoomIn, ZoomOut, Home, Search, Settings } from 'lucide-react';
 import { SystemConnection } from '../../utils';
 import MapLegend from '../MapLegend/MapLegend';
-import { StarNetworkVisualizationProps } from './StarNetworkVisualization.types';
+import {
+  StarNetworkVisualizationProps,
+  Colony,
+  Node,
+  NodesMap,
+} from './StarNetworkVisualization.types';
 
 const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
   systemConnections,
   populationData,
   capitalSystemId,
   onOpenSetup,
+  selectedRaceId,
 }) => {
   const [systems, setSystems] = useState<{
     nodes: Node[];
@@ -31,38 +37,6 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Node[]>([]);
   const [showSearch, setShowSearch] = useState(false);
-
-  interface NodesMap {
-    [key: string]: {
-      id: number;
-      name: string;
-      connections: number;
-      connected: number[];
-      population: number;
-      colonies: { name: string; population: number; bodyName: string }[];
-      hasColony: boolean;
-    };
-  }
-
-  interface Colony {
-    name: string;
-    bodyName: string;
-    population: number;
-    controlledBy?: string;
-  }
-
-  interface Node {
-    x: number;
-    y: number;
-    depth: number;
-    id: number;
-    name: string;
-    connections: number;
-    connected: number[];
-    population: number;
-    colonies: Colony[];
-    hasColony: boolean;
-  }
 
   // Load and prepare data
   useEffect(() => {
@@ -107,25 +81,25 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
     });
 
     // Add population data if available
-    if (populationData && populationData.systemDistribution) {
-      populationData.systemDistribution.forEach((system) => {
-        // Find matching star system
+    if (populationData && populationData.colonies) {
+      // Assign all colonies to their respective systems
+      populationData.colonies.forEach((colony) => {
         const matchingSystem = Object.values(nodesMap).find(
-          (node) => node.name === system.SystemName
+          (node) => node.name === colony.SystemName
         );
-
         if (matchingSystem) {
-          matchingSystem.population = system.TotalPopulation;
-          matchingSystem.colonies = system.Colonies.map((colonyName) => {
-            const colony = populationData.colonies.find(
-              (c) => c.PopulationName === colonyName
-            );
-            return {
-              name: colonyName,
-              population: colony ? colony.Population : 0,
-              bodyName: colony ? colony.BodyName : '',
-            };
+          // Add colony to the system's colonies array
+          matchingSystem.colonies.push({
+            name: colony.PopulationName,
+            population: colony.Population,
+            bodyName: colony.BodyName,
+            controlledBy:
+              selectedRaceId && colony.ControllingRaceID !== selectedRaceId
+                ? colony.ControllingRaceName
+                : undefined,
           });
+          // Add to system population
+          matchingSystem.population += colony.Population;
           matchingSystem.hasColony = true;
         }
       });
@@ -495,7 +469,6 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
       // Check for alien-controlled colonies
       const alienColony = system.colonies.find((colony) => colony.controlledBy);
       if (alienColony) return '#FF00FF'; // Magenta for alien-controlled colonies
-
       // Color based on population size for human colonies
       if (system.population > 100) return '#FF5733'; // Red for large populations
       if (system.population > 10) return '#FFC300'; // Orange for medium populations
@@ -1041,6 +1014,11 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
                 1
               )} million`;
               tooltip += ` - Colonies: ${system.colonies.length}`;
+              if (system.colonies.some((colony) => colony.controlledBy)) {
+                tooltip += ` - Alien Colonies: ${
+                  system.colonies.filter((colony) => colony.controlledBy).length
+                }`;
+              }
             }
             return tooltip;
           })()}

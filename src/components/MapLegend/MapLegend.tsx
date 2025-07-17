@@ -78,7 +78,7 @@ const MapLegend: React.FC<MapLegendProps> = ({ capitalNode }) => {
       </div>
       <div className='flex items-center mb-1'>
         <div className='w-12 h-0.5 mr-2 bg-[#8B95A5]'></div>
-        <span>Normal Connection</span>
+        <span>Unstabilized Connection</span>
       </div>
     </div>
   );
