@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/aurora-4x-react-map/static/css/main.24bcaf06.css",
+    "main.js": "/aurora-4x-react-map/static/js/main.134d867f.js",
+    "static/js/453.07323748.chunk.js": "/aurora-4x-react-map/static/js/453.07323748.chunk.js",
+    "index.html": "/aurora-4x-react-map/index.html",
+    "main.24bcaf06.css.map": "/aurora-4x-react-map/static/css/main.24bcaf06.css.map",
+    "main.134d867f.js.map": "/aurora-4x-react-map/static/js/main.134d867f.js.map",
+    "453.07323748.chunk.js.map": "/aurora-4x-react-map/static/js/453.07323748.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.24bcaf06.css",
+    "static/js/main.134d867f.js"
+  ]
+}
