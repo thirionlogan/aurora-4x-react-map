@@ -155,7 +155,7 @@ function calculateValidLuminanceRanges(
     validRanges.push({ min: currentMin, max: 1 });
   }
 
-  return validRanges.filter((range) => range.max - range.min > 0.001); // Filter tiny ranges
+  return validRanges; //.filter((range) => range.max - range.min > 0.001); // Filter tiny ranges
 }
 
 /**
