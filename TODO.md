@@ -1,2 +1,3 @@
 - [ ] Dark / Light mode
 - [ ] Fix star system centering
+- [ ] fix Map legend being wrong color

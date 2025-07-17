@@ -6,6 +6,10 @@ A React-based interactive visualization tool for Aurora 4X game data, featuring 
 ![TypeScript](https://img.shields.io/badge/TypeScript-4.9.5-blue?style=for-the-badge&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.17-38B2AC?style=for-the-badge&logo=tailwind-css)
 
+## 📸 Screenshot
+
+![Aurora 4X Map Visualizer Interface](https://i.imgur.com/aZbrYax.png)
+
 ## 🚀 Live Demo
 
 **[View the live application here](https://thirionlogan.github.io/aurora-4x-react-map)**
