@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ZoomIn, ZoomOut, Home, Search, Settings } from 'lucide-react';
 import { SystemConnection } from '../../utils';
 import MapLegend from '../MapLegend/MapLegend';
+import { generateNHighContrastColors } from '../../utils/randomColor';
 import {
   StarNetworkVisualizationProps,
   Colony,
@@ -468,7 +469,10 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
     if (system.hasColony) {
       // Check for alien-controlled colonies
       const alienColony = system.colonies.find((colony) => colony.controlledBy);
-      if (alienColony) return '#FF00FF'; // Magenta for alien-controlled colonies
+      if (alienColony && alienColony.controlledBy) {
+        // Use unique color for this alien race
+        return alienRaceColors.get(alienColony.controlledBy) || '#FF00FF';
+      }
       // Color based on population size for human colonies
       if (system.population > 100) return '#FF5733'; // Red for large populations
       if (system.population > 10) return '#FFC300'; // Orange for medium populations
@@ -558,6 +562,44 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
     () => new Set(systemConnections.map((s) => s.systemId)),
     [systemConnections]
   );
+
+  // Generate unique colors for alien races
+  const alienRaceColors = useMemo(() => {
+    // Get all unique alien race names from colonies
+    const alienRaces = new Set<string>();
+    systems.nodes.forEach((node) => {
+      node.colonies.forEach((colony) => {
+        if (colony.controlledBy) {
+          alienRaces.add(colony.controlledBy);
+        }
+      });
+    });
+
+    // Define existing colors to avoid conflicts
+    const existingColors = [
+      '#FFD700', // Capital system (gold)
+      '#FF5733', // Large human colony (red)
+      '#FFC300', // Medium human colony (orange)
+      '#33A8FF', // Small human colony (blue)
+      '#85C1E9', // Minor human colony (light blue)
+      '#9BA5B7', // Uninhabited system (gray)
+      '#1F2937', // Background color (gray-900)
+    ];
+
+    // Generate unique colors for each alien race with a more relaxed contrast ratio
+    const alienColors = generateNHighContrastColors(
+      alienRaces.size,
+      existingColors
+    ).filter((color) => !existingColors.includes(color));
+
+    // Create mapping from race name to color
+    const raceColorMap = new Map<string, string>();
+    Array.from(alienRaces).forEach((race, index) => {
+      raceColorMap.set(race, alienColors[index] || '#FF00FF'); // Fallback to magenta
+    });
+
+    return raceColorMap;
+  }, [systems.nodes]);
 
   const capitalNode = systems.nodes.find((n: Node) => n.id === capitalSystemId);
 
@@ -1025,7 +1067,7 @@ const StarNetworkVisualization: React.FC<StarNetworkVisualizationProps> = ({
         </div>
       )}
 
-      <MapLegend capitalNode={capitalNode} />
+      <MapLegend capitalNode={capitalNode} alienRaces={alienRaceColors} />
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { MapLegendProps } from './MapLegend.types';
 
-const MapLegend: React.FC<MapLegendProps> = ({ capitalNode }) => {
+const MapLegend: React.FC<MapLegendProps> = ({ capitalNode, alienRaces }) => {
   return (
     <div className='absolute bottom-4 left-4 bg-gray-800 bg-opacity-80 text-white text-xs p-2 rounded-lg'>
       <div className='mb-1 font-semibold text-sm'>Legend:</div>
@@ -18,13 +18,26 @@ const MapLegend: React.FC<MapLegendProps> = ({ capitalNode }) => {
             : 'Capital System'}
         </span>
       </div>
-      <div className='flex items-center mb-1'>
-        <div
-          className='w-3 h-3 rounded-full mr-2'
-          style={{ backgroundColor: '#FF00FF' }}
-        ></div>
-        <span>Alien-Controlled Colony</span>
-      </div>
+      {/* Alien race entries */}
+      {alienRaces && alienRaces.size > 0 ? (
+        Array.from(alienRaces.entries()).map(([raceName, color]) => (
+          <div key={raceName} className='flex items-center mb-1'>
+            <div
+              className='w-3 h-3 rounded-full mr-2'
+              style={{ backgroundColor: color }}
+            ></div>
+            <span>{raceName} Colony</span>
+          </div>
+        ))
+      ) : (
+        <div className='flex items-center mb-1'>
+          <div
+            className='w-3 h-3 rounded-full mr-2'
+            style={{ backgroundColor: '#FF00FF' }}
+          ></div>
+          <span>Alien-Controlled Colony</span>
+        </div>
+      )}
       <div className='flex items-center mb-1'>
         <div
           className='w-3 h-3 rounded-full mr-2'
