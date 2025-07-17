@@ -50,7 +50,7 @@ const SetupModal: React.FC<SetupModalProps> = ({
   const loadRaces = async (gameId: number) => {
     try {
       const result = await executeQuery(
-        'SELECT RaceID, RaceName FROM FCT_Race WHERE GameID = ?',
+        'SELECT RaceID, RaceName FROM FCT_Race r WHERE GameID = ? AND (SELECT COUNT(*) FROM FCT_RaceSysSurvey WHERE RaceID = r.RaceID ) > 0',
         [gameId]
       );
       if (result.length === 0) {
