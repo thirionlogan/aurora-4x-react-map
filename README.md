@@ -1,46 +1,170 @@
-# Getting Started with Create React App
+# Aurora 4X Star System Map Visualizer
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React-based interactive visualization tool for Aurora 4X game data, featuring dynamic star system networks, population data visualization, and real-time database integration.
 
-## Available Scripts
+![Aurora 4X Map Visualizer](https://img.shields.io/badge/React-19.1.0-blue?style=for-the-badge&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-4.9.5-blue?style=for-the-badge&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.17-38B2AC?style=for-the-badge&logo=tailwind-css)
 
-In the project directory, you can run:
+## 🚀 Live Demo
 
-### `npm start`
+**[View the live application here](https://thirionlogan.github.io/aurora-4x-react-map)**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## 📖 Overview
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+This project is an interactive web application that visualizes star system networks and population data from Aurora 4X game databases. It transforms complex game data into an intuitive, interactive map interface that allows players to explore their game universe through a modern web interface.
 
-### `npm test`
+### Key Features
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Interactive Star System Network**: Visualize connected star systems with hierarchical layouts
+- **Population Data Integration**: Display colony information and population statistics
+- **Real-time Database Processing**: Direct integration with Aurora 4X SQLite databases
+- **Dynamic Visualization**: Zoom, pan, and search through star systems
+- **Responsive Design**: Modern UI built with React and Tailwind CSS
+- **TypeScript**: Full type safety and enhanced developer experience
 
-### `npm run build`
+## 🛠️ Technology Stack
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **Frontend**: React 19.1.0 with TypeScript
+- **Styling**: Tailwind CSS for modern, responsive design
+- **Database**: SQL.js for client-side SQLite database processing
+- **Storage**: IndexedDB for local database persistence
+- **Icons**: Lucide React for consistent iconography
+- **Deployment**: GitHub Pages for static hosting
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🎯 Core Functionality
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Database Integration
 
-### `npm run eject`
+- Upload Aurora 4X SQLite database files directly in the browser
+- Extract and process game data including star systems, connections, and population
+- Persistent storage using IndexedDB for seamless user experience
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Interactive Visualization
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **Hierarchical Layout**: Star systems organized by connection depth from capital
+- **Dynamic Sizing**: System nodes sized based on population and colony count
+- **Color Coding**: Visual distinction between controlled and uncontrolled systems
+- **Connection Lines**: Display jump gate connections between systems
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### User Interface
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- **Setup Modal**: Guided database upload and game/race selection
+- **Interactive Controls**: Zoom, pan, and search functionality
+- **Map Legend**: Clear visual indicators for different system types
+- **Responsive Design**: Works across desktop and mobile devices
 
-## Learn More
+## 🚀 Getting Started
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Prerequisites
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Node.js (v16 or higher)
+- npm or yarn package manager
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/thirionlogan/aurora-4x-react-map.git
+   cd aurora-4x-react-map
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server**
+
+   ```bash
+   npm start
+   ```
+
+4. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Usage
+
+1. **Upload Database**: Drag and drop your Aurora 4X SQLite database file
+2. **Select Game**: Choose the specific game you want to visualize
+3. **Select Race**: Pick the race whose data you want to explore
+4. **Explore**: Use the interactive map to explore star systems and colonies
+
+## 📁 Project Structure
+
+```
+src/
+├── components/
+│   ├── MapLegend/           # Interactive map legend component
+│   ├── SetupModal/          # Database upload and configuration modal
+│   └── StarNetworkVisualization/  # Main visualization component
+├── utils/
+│   ├── capitalSystem.ts     # Capital system identification
+│   ├── database.ts          # Database connection and query utilities
+│   ├── populationData.ts    # Population data extraction
+│   ├── systemConnections.ts # Star system connection processing
+│   └── randomColor.ts       # Color generation utilities
+└── App.tsx                  # Main application component
+```
+
+## 🔧 Available Scripts
+
+- `npm start` - Runs the app in development mode
+- `npm test` - Launches the test runner
+- `npm run build` - Builds the app for production
+- `npm run deploy` - Deploys to GitHub Pages
+
+## 🎨 Features in Detail
+
+### Star System Visualization
+
+- **Hierarchical Layout**: Systems organized by distance from capital
+- **Force-Directed Positioning**: Automatic layout optimization
+- **Interactive Nodes**: Click to select and view system details
+- **Connection Visualization**: Jump gate connections between systems
+
+### Population Data Display
+
+- **Colony Information**: Population counts and colony names
+- **Race Control**: Visual indicators for system ownership
+- **Population Totals**: Aggregate population per system
+
+### User Experience
+
+- **Persistent Settings**: Remembers game and race selections
+- **Search Functionality**: Find specific star systems quickly
+- **Zoom Controls**: Navigate large star networks efficiently
+- **Responsive Design**: Works on desktop and mobile devices
+
+## 🚧 Future Enhancements
+
+- [ ] Dark/Light mode toggle
+- [ ] Improved star system centering algorithms
+- [ ] Additional data visualization options
+- [ ] Export functionality for maps
+- [ ] Performance optimizations for large databases
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Aurora 4X Community**: For the amazing 4X space strategy game
+- **React Team**: For the excellent framework
+- **Tailwind CSS**: For the utility-first CSS framework
+- **SQL.js**: For client-side SQLite processing capabilities
+
+---
+
+**Built with ❤️ for the Aurora 4X community**
